@@ -1,0 +1,14 @@
+{
+  "name": "cse331-hw1",
+  "version": "0.0.1",
+  "description": "CSE 331 HW1",
+  "type": "module",
+  "scripts": {
+    "start": "node --watch src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
