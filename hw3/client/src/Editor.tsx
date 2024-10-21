@@ -24,33 +24,23 @@ export class Editor extends Component<EditorProps, EditorState> {
     this.state = {};
   }
 
-  handleFromChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const start = this.props.buildings.find(
-        (building) => building.shortName === event.target.value
-    );
-
-    this.setState({ start }, this.updateEndPoints);
+  doUpdateEndPoint = (): void => {
+    this.state.start !== undefined && this.state.end !== undefined
+        ? this.props.onEndPointChange([this.state.start!, this.state.end!])
+        : this.props.onEndPointChange(undefined);
   };
 
-  handleToChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const end = this.props.buildings.find(
-        (building) => building.shortName === event.target.value
-    );
-
-    this.setState({ end }, this.updateEndPoints);
+  onFromChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const start = this.props.buildings.find((building) => building.shortName === event.target.value);
+    this.setState({ start }, this.doUpdateEndPoint);
   };
 
-  updateEndPoints = (): void => {
-    const { start, end } = this.state;
-    if (start !== undefined && end !== undefined) {
-      // Both endpoints are selected
-      this.props.onEndPointChange([start, end]);
-    } else {
-      this.props.onEndPointChange(undefined);
-    }
+  onToChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const end = this.props.buildings.find((building) => building.shortName === event.target.value);
+    this.setState({ end }, this.doUpdateEndPoint);
   };
 
-  handleClear = (): void => {
+  onClear = (): void => {
     this.setState({ start: undefined, end: undefined }, () => {
       this.props.onEndPointChange(undefined);
     });
@@ -63,7 +53,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             From:
             <span style={{marginLeft: '5px'}}></span>
             <select
-                onChange={this.handleFromChange}
+                onChange={this.onFromChange}
                 value={this.state.start?.shortName || ''}
             >
               <option value="">(choose a building)</option>
@@ -81,7 +71,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             To:
             <span style={{marginLeft: '5px'}}></span>
             <select
-                onChange={this.handleToChange}
+                onChange={this.onToChange}
                 value={this.state.end?.shortName || ''}
             >
               <option value="">(choose a building)</option>
@@ -95,7 +85,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             </select>
           </p>
 
-          <button onClick={this.handleClear}>clear</button>
+          <button onClick={this.onClear}>clear</button>
         </div>
     );
   };
