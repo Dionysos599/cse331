@@ -11,7 +11,8 @@ type EditorProps = {
 };
 
 type EditorState = {
-  // TODO: decide on the state to store
+  start?: Building;
+  end?: Building;
 };
 
 
@@ -23,9 +24,79 @@ export class Editor extends Component<EditorProps, EditorState> {
     this.state = {};
   }
 
-  render = (): JSX.Element => {
-    // TODO: fill this in
-    return <div></div>;
+  handleFromChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const start = this.props.buildings.find(
+        (building) => building.shortName === event.target.value
+    );
+
+    this.setState({ start }, this.updateEndPoints);
   };
 
+  handleToChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const end = this.props.buildings.find(
+        (building) => building.shortName === event.target.value
+    );
+
+    this.setState({ end }, this.updateEndPoints);
+  };
+
+  updateEndPoints = (): void => {
+    const { start, end } = this.state;
+    if (start !== undefined && end !== undefined) {
+      // Both endpoints are selected
+      this.props.onEndPointChange([start, end]);
+    } else {
+      this.props.onEndPointChange(undefined);
+    }
+  };
+
+  handleClear = (): void => {
+    this.setState({ start: undefined, end: undefined }, () => {
+      this.props.onEndPointChange(undefined);
+    });
+  };
+
+  render = (): JSX.Element => {
+    return (
+        <div>
+          <p>
+            From:
+            <span style={{marginLeft: '5px'}}></span>
+            <select
+                onChange={this.handleFromChange}
+                value={this.state.start?.shortName || ''}
+            >
+              <option value="">(choose a building)</option>
+              {this.props.buildings.map((building) => {
+                return (
+                    <option key={building.shortName} value={building.shortName}>
+                      {building.longName}
+                    </option>
+                );
+              })}
+            </select>
+          </p>
+
+          <p>
+            To:
+            <span style={{marginLeft: '5px'}}></span>
+            <select
+                onChange={this.handleToChange}
+                value={this.state.end?.shortName || ''}
+            >
+              <option value="">(choose a building)</option>
+              {this.props.buildings.map((building) => {
+                return (
+                    <option key={building.shortName} value={building.shortName}>
+                      {building.longName}
+                    </option>
+                );
+              })}
+            </select>
+          </p>
+
+          <button onClick={this.handleClear}>clear</button>
+        </div>
+    );
+  };
 }
