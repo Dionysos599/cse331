@@ -1,4 +1,9 @@
 */node_modules/*
 !*/node_modules/coZ
+.idea
+*/.idea
+.DS_Store
+*/.DS_Store
+.vscode
 */.vscode
 */dist
