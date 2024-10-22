@@ -29,7 +29,7 @@ export const shortestPath = (
   for (const edge of _edges) {
     const startStr = toString(edge.start);
     if (!adjacent.has(startStr)) {
-      adjacent.set(startStr, [])
+      adjacent.set(startStr, []);
     }
     adjacent.get(startStr)!.push(edge);
   }
