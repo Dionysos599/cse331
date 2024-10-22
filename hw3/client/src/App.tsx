@@ -166,8 +166,7 @@ export class App extends Component<AppProps, AppState> {
       throw new Error(`data.path.steps is missing or not an array`);
     }
 
-    const path = data.path.steps as Array<Edge>;
-    this.setState({ path });
+    this.setState({ path: data.path.steps });
   };
 
   /** Logs errors related to fetching the shortest path. */
