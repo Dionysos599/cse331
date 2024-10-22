@@ -24,15 +24,8 @@ const toString = (loc: Location): string => {
 export const shortestPath = (
     _start: Location, _end: Location, _edges: Array<Edge>): Path | undefined => {
 
-  // TODO (Task 2): implement this
   // Outgoing edges from each location
   const adjacent: Map<string, Array<Edge>> = new Map();
-
-  const finished: Set<string> = new Set(); // locations with the shortest path found.
-
-  // All paths to an unfinished location
-  const active = new Heap<Path>((a, b) => a.dist - b.dist);
-
   for (const edge of _edges) {
     const startStr = toString(edge.start);
     if (!adjacent.has(startStr)) {
@@ -41,6 +34,11 @@ export const shortestPath = (
     adjacent.get(startStr)!.push(edge);
   }
 
+  // locations with the shortest path found.
+  const finished: Set<string> = new Set();
+
+  // All paths to an unfinished location
+  const active = new Heap<Path>((a, b) => a.dist - b.dist);
   active.add({start: _start, end: _start, steps: [], dist: 0});
 
   while (!active.isEmpty()) {
@@ -62,12 +60,11 @@ export const shortestPath = (
     for (const e of edgesFromEnd) {
       const endEdgeKey = `${e.end.x},${e.end.y}`;
       if (!finished.has(endEdgeKey)) {
-        // Create a new path by extending minPath with edge e
         const newPath: Path = {
           start: minPath.start,
           end: e.end,
           steps: [...minPath.steps, e],
-          dist: minPath.dist + e.dist,
+          dist: minPath.dist + e.dist
         };
         active.add(newPath);
       }
