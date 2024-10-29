@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import { a, b, c, d, e, f, g, h, i } from './funcs';
 import { cons, nil } from './list';
 
-// TODO (Task 7): 
 // - Write tests according to our class requirements for each funcs.ts function
 // - Include comments describing which requirements each test fulfills
 // - See this week's section slides for an explanation on how to organize files

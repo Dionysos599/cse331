@@ -5,7 +5,6 @@ import {
   BR, BL, TL, TR, RL,
 } from './maze';
 
-// TODO (Task 6b) implement the following functions as translations of your 
 // math definitions. The parameters must be ordered as below for testing, 
 // (it's okay if this deviates slightly from your math definition)
 

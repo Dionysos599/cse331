@@ -1,4 +1,3 @@
-// TODO (Task 6a): translate your math definitions for p, s defined in HW4 Task 2
 // Tests for these functions can be found in pell_test.ts
 
 /** Returns the pell number for num, as defined in Task 2a */
