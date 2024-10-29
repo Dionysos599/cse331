@@ -1,12 +1,12 @@
 {
   "name": "cse331-hw3-server",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "CSE 331 HW3",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc-watch -p tsconfig.json --onSuccess \"node .\""
   },
-  "author": "",
+  "author": "Dennis Lam",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",

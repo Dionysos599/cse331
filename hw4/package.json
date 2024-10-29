@@ -1,6 +1,6 @@
 {
   "name": "cse331-hw4-maze",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "CSE 331 HW4",
   "main": "",
   "scripts": {
@@ -8,7 +8,7 @@
     "test": "nyc ts-mocha -p tsconfig.json src/**/*_test.ts",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
-  "author": "",
+  "author": "Dennis Lam",
   "license": "ISC",
   "devDependencies": {
     "@types/assert": "^1.5.6",
