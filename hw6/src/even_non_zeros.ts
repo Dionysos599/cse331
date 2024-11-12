@@ -28,7 +28,6 @@ export type Digit = 0 | 1 | 2;
 export const even_non_zeros = (L: List<Digit>): [bigint, boolean] => {
   // {{ L = L_0 }}
 
-  // TODO (Task 6b): uncomment this variables & fill in the blanks
   let a: bigint = 0n;
   let b: boolean = true;
 
@@ -44,5 +43,5 @@ export const even_non_zeros = (L: List<Digit>): [bigint, boolean] => {
   }
 
   // {{ a = non-zeros(L_0) and b = even(L_0) }}
-  return [a, b]; // TODO: fill in values with correct variables
+  return [a, b];
 };
