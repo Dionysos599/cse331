@@ -1,6 +1,6 @@
 import { List } from "./list";
 
-// Tests for these functions belong in sum_test.ts
+// - Tests for these functions belong in sum_test.ts
 
 /** 
  * The set of base-3 digits. 
@@ -29,18 +29,20 @@ export const even_non_zeros = (L: List<Digit>): [bigint, boolean] => {
   // {{ L = L_0 }}
 
   // TODO (Task 6b): uncomment this variables & fill in the blanks
-  // let a: bigint = ______;
-  // let b: boolean = ______;
+  let a: bigint = 0n;
+  let b: boolean = true;
 
   // Inv: non-zeros(L_0) = a + non-zeros(L) and even(L_0) = (b = even(L))
   while (L.kind !== "nil") {
-    // ...
-    // TODO: fill in the code here
-    // ...
-
+    if (L.hd === 1) {
+      a = a + 1n;
+      b = !b;
+    } else if (L.hd === 2) {
+      a = a + 1n;
+    }
     L = L.tl;
   }
 
   // {{ a = non-zeros(L_0) and b = even(L_0) }}
-  return [-1n, false]; // TODO: fill in values with correct variables
+  return [a, b]; // TODO: fill in values with correct variables
 };
