@@ -6,40 +6,16 @@ import { int_sqrt } from './int_sqrt';
 
 describe('int_sqrt', function() {
 
-    // Test for input 1 (boundary case, loop executes once)
-    it('perfect square a', function() {
-        // Fulfills exhaustive testing for a simple input where loop executes once.
-        assert.strictEqual(int_sqrt(1n), 1n);
-    });
+    it('int_sqrt', function() {
+        // branch coverage: verify correct handling of a perfect square, testing loop coverage with multiple iterations.
+        assert.deepStrictEqual(int_sqrt(1n), 1n); // loop 0 iterations
+        assert.deepStrictEqual(int_sqrt(4n), 2n); // loop 1 iteration
+        assert.deepStrictEqual(int_sqrt(9n), 3n); // loop 2 iterations
+        assert.deepStrictEqual(int_sqrt(100000000000000n), 10000000n); // loop a large number of iterations
 
-    // Test for input 4 (perfect square, loop coverage)
-    it('perfect square b', function() {
-        // Verifies correct handling of a perfect square, testing loop coverage with multiple iterations.
-        assert.strictEqual(int_sqrt(4n), 2n);
-    });
-
-    // Test for input 9 (perfect square, loop executes multiple times)
-    it('perfect square c', function() {
-        // Verifies loop execution for a larger perfect square.
-        assert.strictEqual(int_sqrt(9n), 3n);
-    });
-
-    // Test for input 2 (boundary case, non-perfect square)
-    it('imperfect square a', function() {
-        // Tests boundary just above 1 to check correctness for values that are not perfect squares.
-        assert.strictEqual(int_sqrt(2n), 2n);
-    });
-
-    // Test for input 35 (non-perfect square boundary case, branch coverage)
-    it('imperfect square b', function() {
-        // Tests a non-perfect square just below the next perfect square to verify boundary handling.
-        assert.strictEqual(int_sqrt(35n), 6n);
-    });
-
-    // Test for a large input (performance and correctness test for large bigint values)
-    it('large input', function() {
-        // Tests performance and correctness for large inputs to ensure bigint handling.
-        assert.strictEqual(int_sqrt(100000000000000n), 10000000n);
+        // branch coverage: tests boundaries just above or below perfect squares. (not perfect squares)
+        assert.deepStrictEqual(int_sqrt(2n), 2n);
+        assert.deepStrictEqual(int_sqrt(35n), 6n);
     });
 
 });
