@@ -1,0 +1,22 @@
+{
+  "name": "cse331-hw6-digits",
+  "version": "0.0.1",
+  "description": "CSE 331 HW6",
+  "main": "",
+  "scripts": {
+    "lint": "comfy-tslint src/*.{ts,tsx}",
+    "test": "ts-mocha -p tsconfig.json src/**/*_test.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/assert": "^1.5.6",
+    "@types/mocha": "^5.2.7",
+    "assert": "^2.0.0",
+    "comfy-tslint": "^0.1.10",
+    "mocha": "^10.1.0",
+    "ts-loader": "^9.4.1",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.8.4"
+  }
+}
