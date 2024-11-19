@@ -22,7 +22,42 @@ describe('natural', function() {
   // Using these are not required. See stringToNatural tests for an example.
 
   it('naturalToString', function() {
-    // TODO: write your tests here
+    // Test empty/nil list (base case - 0 loop iterations)
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: nil, base: 10})),
+        "0");
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: nil, base: 2})),
+        "0");
+
+    // Test single digit numbers (1 loop iteration)
+    // Test boundaries for different bases
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(0, cons(1, nil)), base: 10})),
+        "10");
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(5, nil), base: 10})),
+        "5");
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(15, nil), base: 16})),
+        "F");  // Tests conversion of 15 to 'F' in base 16
+
+    // Test multiple digits (many loop iterations)
+    // Tests both number->letter conversion and multiple digits
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(5, cons(4, cons(3, nil))), base: 10})),
+        "345");
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(10, cons(11, cons(12, nil))), base: 16})),
+        "CBA");  // Tests multiple letter conversions
+
+    // Test numbers in different bases
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(1, cons(1, cons(1, nil))), base: 2})),
+        "111");  // Binary representation
+    assert.deepStrictEqual(
+        compact(naturalToString({digits: cons(15, cons(15, nil)), base: 16})),
+        "FF");  // Hexadecimal with multiple F's
   });
 
   it('stringToNatural', function() {
@@ -65,7 +100,102 @@ describe('natural', function() {
   });
 
   it('add', function() {
-    // TODO: write your tests here
+    // Base cases: add(nil, nil, c)
+    assert.deepStrictEqual(
+        add({digits: nil, base: 10}, {digits: nil, base: 10}),
+        {digits: nil, base: 10});  // add(nil, nil, 0) := nil
+
+    // Single digit cases - no carry
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(1, nil), base: 10},
+            {digits: cons(2, nil), base: 10}),
+        {digits: cons(3, nil), base: 10});  // 1 + 2 = 3
+
+    // Single digit cases - with carry
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(5, nil), base: 10},
+            {digits: cons(7, nil), base: 10}),
+        {digits: cons(2, cons(1, nil)), base: 10});  // 5 + 7 = 12
+
+    // Different length lists - first longer
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(5, cons(1, nil)), base: 10},
+            {digits: cons(3, nil), base: 10}),
+        {digits: cons(8, cons(1, nil)), base: 10});  // 15 + 3 = 18
+
+    // Different length lists - second longer
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(3, nil), base: 10},
+            {digits: cons(5, cons(1, nil)), base: 10}),
+        {digits: cons(8, cons(1, nil)), base: 10});  // 3 + 15 = 18
+
+    // Multi-digit with multiple carries
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(5, cons(7, nil)), base: 10},
+            {digits: cons(7, cons(6, nil)), base: 10}),
+        {digits: cons(2, cons(4, cons(1, nil))), base: 10});  // 75 + 67 = 142
+
+    // Different bases - base 2 (binary)
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(1, cons(1, nil)), base: 2},
+            {digits: cons(1, nil), base: 2}),
+        {digits: cons(0, cons(0, cons(1, nil))), base: 2});  // 3 + 1 = 4 in binary
+
+    // Different bases - base 16 (hex)
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(15, nil), base: 16},
+            {digits: cons(1, nil), base: 16}),
+        {digits: cons(0, cons(1, nil)), base: 16});  // F + 1 = 10 in hex
+
+    // Edge case - carry propagation through multiple digits
+    assert.deepStrictEqual(
+        add(
+            {digits: cons(9, cons(9, cons(9, nil))), base: 10},
+            {digits: cons(1, nil), base: 10}),
+        {digits: cons(0, cons(0, cons(0, cons(1, nil)))), base: 10});  // 999 + 1 = 1000
+
+    // Test case for non-empty list + empty list with carry exceeding base
+    assert.deepStrictEqual(
+        add(
+            {digits: nil, base: 10},
+            {digits: cons(9, cons(9, nil)), base: 10}),
+        {digits: cons(9, cons(9, nil)), base: 10});  // nil + 99 with potential carry
+
+    // Test case for (nil, b::bs, c) with carry
+    assert.deepStrictEqual(
+        add(
+            {digits: nil, base: 10},
+            {digits: cons(8, cons(1, nil)), base: 10}),
+        {digits: cons(8, cons(1, nil)), base: 10});  // 0 + 18 = 18
+
+    // Test carrying in bs-only case
+    assert.deepStrictEqual(
+        add(
+            {digits: nil, base: 10},  // 0
+            {digits: cons(8, cons(1, nil)), base: 10}),  // 18
+        {digits: cons(8, cons(1, nil)), base: 10});  // 0 + 18 = 18
+
+    // Test carrying in bs-only case WITH carry needed
+    assert.deepStrictEqual(
+        add(
+            {digits: nil, base: 10},  // 0
+            {digits: cons(9, cons(9, nil)), base: 10}),  // 99
+        {digits: cons(9, cons(9, nil)), base: 10});  // 0 + 99 = 99
+
+    // This specifically tests the else branch in the bs.kind === "cons" case
+    // When bs has a digit that needs carrying but as is nil
+    assert.deepStrictEqual(
+        add(
+            {digits: nil, base: 2},  // 0
+            {digits: cons(1, cons(1, nil)), base: 2}),  // 3 in decimal
+        {digits: cons(1, cons(1, nil)), base: 2});  // 0 + 11(binary) = 11(binary)
   });
   
   it('numberToNatural', function() {
@@ -101,8 +231,6 @@ describe('natural', function() {
     assert.deepStrictEqual(numberToNatural(1010, 10),
         {digits: cons(0, cons(1, cons(0, cons(1, nil)))), base: 10});
   });
-
-  /* TODO: uncomment these once "add" is complete
 
   it('scale', function() {
     assert.deepStrictEqual(scale({digits: nil, base: 10}, 5),
@@ -186,7 +314,5 @@ describe('natural', function() {
     assert.deepStrictEqual(changeBase({digits: cons(8, cons(5, cons(1, nil))), base: 10}, 3),
         {digits: cons(2, cons(1, cons(2, cons(2, cons(1, nil))))), base: 3});
   });
-
-  */
 
 });

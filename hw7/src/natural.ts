@@ -73,7 +73,11 @@ export const naturalToString = (nat: Natural): List<string> => {
   let chars: List<string> = nil; 
   let digits: List<number> = nat.digits;
 
-  // TODO: write a loop to calculate rev(digits-to-str(digits))
+  // Inv: rev(digits-to-str(digits_0)) = rev(digits-to-str(digits)) ++ chars
+  while (digits.kind !== "nil") {
+    chars = cons(fromDigit(digits.hd), chars);
+    digits = digits.tl;
+  }
 
   return chars; // = rev(digits-to-str(digits_0))
 };
@@ -154,13 +158,46 @@ export const add = (nat: Natural, mat: Natural): Natural => {
   let c = 0;
 
   // Inv: rev(add(as_0, bs_0, 0)) = rev(add(as, bs, c)) ++ ds
-  // TODO: Implement the loop here...
-  //       Be sure to only enter the loop in recursive cases!
+  while (as.kind === "cons" || bs.kind === "cons") {
+    if (as.kind === "cons" && bs.kind === "cons") {
+      // a::as, b::bs, c
+      const sum = as.hd + bs.hd + c;
+      if (sum < nat.base) {
+        ds = cons(sum, ds);
+        c = 0;
+      } else {
+        ds = cons(sum - nat.base, ds);
+        c = 1;
+      }
+      as = as.tl;
+      bs = bs.tl;
+    } else if (as.kind === "cons") {
+      // a::as, nil, c
+      const sum = as.hd + c;
+      if (sum < nat.base) {
+        ds = cons(sum, ds);
+        c = 0;
+      } else {
+        ds = cons(sum - nat.base, ds);
+        c = 1;
+      }
+      as = as.tl;
+    } else if (bs.kind === "cons") { // bs.kind must be "cons"
+      // nil, b::bs, c
+      const sum = bs.hd + c;
+      if (sum < nat.base) {
+        ds = cons(sum, ds);
+        c = 0;
+      } else {
+        ds = cons(sum - nat.base, ds);
+        c = 1;
+      }
+      bs = bs.tl;
+    }
+  }
 
   // Calculate rs = add(as, bs, c)
-  // TODO: Implement the base cases here...
-  //       Be sure to only implement the base cases!
-  let rs: List<number> = nil;
+  let rs: List<number> = c > 0 ? cons(c, nil) : nil;
 
   // We now know that rev(add(as, bs, 0)) = rev(rs) ++ ds,
   // so we want to return rev(rev(rs) ++ ds) = rev(ds) ++ rs.

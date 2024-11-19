@@ -5,7 +5,8 @@
   "main": "",
   "scripts": {
     "lint": "comfy-tslint src/*.{ts,tsx}",
-    "test": "ts-mocha -p tsconfig.json src/**/*_test.ts --require ignore-styles",
+    "test": "nyc ts-mocha -p tsconfig.json src/**/*_test.ts --require ignore-styles",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start": "webpack-dev-server --config src/webpack.config.js"
   },
   "author": "",
@@ -29,6 +30,7 @@
     "ignore-styles": "^5.0.1",
     "mini-css-extract-plugin": "^2.6.1",
     "mocha": "^10.1.0",
+    "nyc": "^17.1.0",
     "progress-bar-webpack-plugin": "^2.1.0",
     "ts-loader": "^9.4.1",
     "ts-mocha": "^10.0.0",
@@ -36,5 +38,10 @@
     "webpack": "^5.75.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.11.1"
+  },
+  "nyc": {
+    "exclude": [
+      "**/*_test.ts"
+    ]
   }
 }
