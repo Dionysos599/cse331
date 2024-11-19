@@ -36,7 +36,7 @@ export class App extends Component<{}, AppState> {
         digitsStr: "", digitsState: {kind: "valid", value: ""},
       };
   }
-  
+
   render = (): JSX.Element => {
     return <div>
         {this.renderBase()}
@@ -117,9 +117,66 @@ export class App extends Component<{}, AppState> {
   };
 
   renderStackOps = (): JSX.Element => {
-    // TODO: render buttons that allow the user to pop, add, and multiply
-    //       numbers on the stack
-    return <span></span>;  // nothing
+    const stackSize = this.getStackSize(this.state.stack);
+    const hasTwoOrMore = stackSize >= 2;
+    const hasOne = stackSize >= 1;
+
+    return <div style={{marginTop: '10px', marginLeft: '10px'}}>
+      <button
+          disabled={!hasOne}
+          onClick={this.doPopClick}>
+        Pop
+      </button>
+      {' '}
+      <button
+          disabled={!hasTwoOrMore}
+          onClick={this.doAddClick}>
+        Add
+      </button>
+      {' '}
+      <button
+          disabled={!hasTwoOrMore}
+          onClick={this.doMultiplyClick}>
+        Multiply
+      </button>
+    </div>;
+  };
+
+  private getStackSize = (stack: List<Natural>): number => {
+    let size = 0;
+    let current = stack;
+    // Inv: size = len(this.state.stack) - len(current)
+    while (current.kind === "cons") {
+      size += 1;
+      current = current.tl;
+    }
+    return size;
+  };
+
+  private doPopClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
+    if (this.state.stack.kind === "cons") {
+      this.setState({
+        stack: this.state.stack.tl
+      });
+    }
+  };
+
+  private doAddClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
+    if (this.state.stack.kind === "cons" && this.state.stack.tl.kind === "cons") {
+      const result = add(this.state.stack.hd, this.state.stack.tl.hd);
+      this.setState({
+        stack: cons(result, this.state.stack.tl.tl)
+      });
+    }
+  };
+
+  private doMultiplyClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
+    if (this.state.stack.kind === "cons" && this.state.stack.tl.kind === "cons") {
+      const result = mul(this.state.stack.hd, this.state.stack.tl.hd);
+      this.setState({
+        stack: cons(result, this.state.stack.tl.tl)
+      });
+    }
   };
 
   doBaseChange = (evt: ChangeEvent<HTMLInputElement>): void => {
