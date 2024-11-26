@@ -2,7 +2,14 @@ import React, { Component, ChangeEvent, MouseEvent } from "react";
 
 
 type FilePickerProps = {
-  // TODO: may want to add some props
+  /** Array of existing file names */
+  files: Array<string>;
+
+  /** Callback for selecting an existing file */
+  onPick: (name: string) => void;
+
+  /** Callback for creating a new file */
+  onCreate: (name: string) => void;
 };
 
 
@@ -21,23 +28,52 @@ export class FilePicker extends Component<FilePickerProps, FilePickerState> {
   }
 
   render = (): JSX.Element => {
-    // TODO: format list of files as links
-
     return (<div>
-        <h3>Files</h3>
-        {/* TODO: Render file links & textbox for creating a file here */}
-      </div>);
+      <h3>Files</h3>
+      <ul>{this.props.files.map(this.doListClick)}</ul>
+      <div>
+        <label>
+          Name:
+          <span style={{marginLeft: "10px"}}></span>
+          <input type="text" value={this.state.name} onChange={this.doNameChange}
+          />
+        </label>
+        <span style={{marginLeft: "10px"}}></span>
+        <button onClick={this.doCreateClick}>Create</button>
+      </div>
+    </div>);
   };
 
-  // Updates our record with the name text being typed in
+  doListClick = (fileName: string): JSX.Element => {
+    return (
+      <li key={fileName}>
+        <a href="#" onClick={(evt) => this.doFileClick(evt, fileName)}>
+        {fileName}
+        </a>
+      </li>
+    );
+  };
+
+  doFileClick = (evt: MouseEvent<HTMLAnchorElement>, fileName: string): void => {
+    evt.preventDefault();
+    this.props.onPick(fileName);
+  };
+
   doNameChange = (evt: ChangeEvent<HTMLInputElement>): void => {
-    // TODO: remove this code, implement
-    console.log(evt);
+    this.setState({name: evt.target.value});
   };
 
   // Updates the UI to show the file editor
   doCreateClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
-    // TODO: implement
+    const name = this.state.name;
+
+    if (name.trim() === "") {
+      alert("File name cannot be empty.");
+      return;
+    }
+
+    this.props.onCreate(name.trim());
+    this.setState({ name: "" });
   };
 
 }

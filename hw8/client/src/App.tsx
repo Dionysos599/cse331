@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { solid, split, Path, Square } from './square';
-import { SquareElem } from './square_draw';
+import { solid, Square } from './square';
+import { FileEditor } from "./FileEditor";
 import { FilePicker } from "./FilePicker";
+import {isRecord} from "./record";
 
 
 /** Describes set of possible app page views */
@@ -24,44 +25,138 @@ type AppState = {
 
 /**
  * Displays the square application containing either a list of files names
- * to pick from or an editor for files files
+ * to pick from or an editor for files
  */
 export class App extends Component<{}, AppState> {
 
+  componentDidMount = (): void => {
+    this.doMainMenuClick();
+  }
+
   constructor(props: {}) {
     super(props);
-
-    // TODO: change to correct starting view once it's implemented
-    this.state = {show: {kind: "edit-file", name: "", initialState: solid("white")}};
+    this.state = {show: {kind: "load-list"}};
   }
-  
+
   render = (): JSX.Element => {
     // Render a loading screen if app is accessing data from the server
-    // or display file list page or editor page appropraitely
+    // or display file list page or editor page appropriately
     if (this.state.show.kind === "load-list") {
       return <p>Loading file names...</p>;
 
     } else if (this.state.show.kind === "show-list") {
-      return <FilePicker />; // TODO: pass in necessary props
+      return (
+          <FilePicker
+              files={this.state.show.names}
+              onPick={this.doLoadFileClick}
+              onCreate={this.doCreateClick}
+          />
+      );
 
     } else if (this.state.show.kind === "load-file") {
       return <p>Loading {this.state.show.name}...</p>;
 
+    } else if (this.state.show.kind === "edit-file") {
+      return (
+          <FileEditor
+              name={this.state.show.name}
+              initialState={this.state.show.initialState}
+              onSave={this.doSaveClick}
+              onBack={this.doMainMenuClick}
+          />
+      );
     } else {
-      // TODO: Replace return with commented out line to render full editor
-      //       component instead of always a static square
-      const sq: Square = split(solid("blue"), solid("orange"), solid("purple"), solid("pink"));
-      return <SquareElem width={600n} height={600n} square={sq}
-        onClick={this.doSquareClick}/>;
-      // return <FileEditor initialState={sq}>  // TODO: pass in necessary props
+      throw new Error("Unknown page kind");
     }
   };
 
-  doSquareClick = (path: Path): void => {
-    console.log(path);
-    alert("Stop that!");
+  /** Handle when a file is clicked to load */
+  doLoadFileClick = (name: string): void => {
+    this.setState({ show: { kind: "load-file", name } });
+
+    fetch(`/api/load?name=${name}`)
+        .then(this.doLoadResp)
+        .catch(this.doLoadError);
   };
 
-  // TODO: write functions here to handle switching between app pages and
-  //       for accessing the server
+  doLoadResp = (res: Response): void => {
+    if (res.status === 200) {
+      res.json().then(data => this.doLoadJson(data))
+          .catch(() => this.doLoadError("200 response is not valid JSON"));
+    } else {
+      res.text().then(this.doLoadError)
+          .catch(() => this.doLoadError("error response is not text"));
+    }
+  };
+
+  doLoadJson = (val: { name: string, content: Square }): void => {
+    this.setState({ show: { kind: "edit-file", name: val.name, initialState: val.content } });
+  };
+
+  doLoadError = (e: unknown): void => {
+    console.error("Failed to load file:", e);
+  };
+
+
+  /** Handle creating a new file */
+  doCreateClick = (name: string): void => {
+    this.setState({
+      show: { kind: "edit-file", name: name, initialState: solid("white") }
+    });
+  };
+
+
+  /** Handle saving a file */
+  doSaveClick = (name: string, root: Square): void => {
+    const args = { name, content: root };
+
+    fetch("/api/save", {
+      method: "POST",
+      body: JSON.stringify(args),
+      headers: { "Content-Type": "application/json" },
+    })
+        .then(() => alert("File saved successfully"))
+        .catch(this.doAddError);
+  };
+
+  doAddError = (msg: string): void => {
+    console.error(`Error fetching /api/add: ${msg}`);
+    alert("Failed to save file");
+  };
+
+
+  /** Handle navigating back to the FilePicker */
+  doMainMenuClick = (): void => {
+    this.setState({ show: { kind: "load-list" } });
+
+    fetch("/api/list")
+        .then(this.doListResp)
+        .catch(this.doListError);
+  };
+
+  doListResp = (res: Response): void => {
+      if (res.status === 200) {
+      res.json().then(this.doListJson)
+          .catch(() => this.doListError("200 response is not valid JSON"));
+      } else {
+      res.text().then(this.doListError)
+          .catch(() => this.doListError("error response is not text"));
+      }
+  };
+
+  doListJson = (val: unknown): void => {
+      if (!isRecord(val)) {
+          throw new Error(`Data is not a record: ${typeof val}`);
+      }
+
+      if (val.files === undefined || !Array.isArray(val.files)) {
+          throw new Error(`Data has no files field: ${val}`);
+      }
+
+      this.setState({ show: { kind: "show-list", names: val.files } });
+  };
+
+  doListError = (msg: string): void => {
+      console.error(`Error fetching /api/list: ${msg}`);
+  };
 }

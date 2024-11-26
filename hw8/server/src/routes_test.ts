@@ -1,28 +1,151 @@
-import * as assert from 'assert';
-import * as httpMocks from 'node-mocks-http';
-import { dummy } from './routes';
+import * as assert from "assert";
+import * as httpMocks from "node-mocks-http";
+import { saveFile, loadFile, listFiles, resetSavesForTesting } from "./routes";
 
+describe("routes", function () {
 
-describe('routes', function() {
-
-  // After you know what to do, feel free to delete this Dummy test
-  it('dummy', function() {
-    // You can copy this test structure to start your own tests, these comments
-    // are included as a reminder of how testing routes works:
-
-    // httpMocks lets us create mock Request and Response params to pass into our route functions
-    const req1 = httpMocks.createRequest(
-        // query: is how we add query params. body: {} can be used to test a POST request
-        {method: 'GET', url: '/api/dummy', query: {name: 'Kevin'}}); 
+  // Exhaustive Testing, Statement Coverage, Branch Coverage
+  it("saveFile", function () {
+    // Valid save
+    const req1 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file1", content: { key: "{\"name\":\"test1\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } },
+    });
     const res1 = httpMocks.createResponse();
-    // call our function to execute the request and fill in the response
-    dummy(req1, res1);
-    // check that the request was successful
-    assert.deepStrictEqual(res1._getStatusCode(), 200);
-    // and the response data is as expected
-    assert.deepStrictEqual(res1._getData(), {greeting: 'Hi, Kevin'});
+    saveFile(req1, res1);
+    assert.strictEqual(res1._getStatusCode(), 200);
+    assert.deepStrictEqual(res1._getData(), { message: "File saved successfully" });
+
+    // Missing name
+    const req2 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { content: { key: "value" } },
+    });
+    const res2 = httpMocks.createResponse();
+    saveFile(req2, res2);
+    assert.strictEqual(res2._getStatusCode(), 400);
+    assert.strictEqual(res2._getData(), "Request body must contain name and content fields");
+
+    // Invalid name
+    const req3 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: 123, content: { key: "{\"name\":\"test1\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } },
+    });
+    const res3 = httpMocks.createResponse();
+    saveFile(req3, res3);
+    assert.strictEqual(res3._getStatusCode(), 400);
+    assert.strictEqual(res3._getData(), "Name must be a string");
+
+    // Missing content
+    const req4 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file2" },
+    });
+    const res4 = httpMocks.createResponse();
+    saveFile(req4, res4);
+    assert.strictEqual(res4._getStatusCode(), 400);
+    assert.strictEqual(res4._getData(), "Request body must contain name and content fields");
+
+    // Invalid content
+    const req5 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file3", content: () => console.log("test") },
+    });
+    const res5 = httpMocks.createResponse();
+    saveFile(req5, res5);
+    assert.strictEqual(res5._getStatusCode(), 400);
+    assert.deepStrictEqual(res5._getData(), { error: "Content must be JSON-serializable" });
+
+    resetSavesForTesting();
   });
 
+  // Exhaustive Testing, Statement Coverage, Branch Coverage
+  it("loadFile", function () {
+    // Save a file to load
+    const saveReq = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file1", content: { key: "{\"name\":\"test\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } },
+    });
+    const saveRes = httpMocks.createResponse();
+    saveFile(saveReq, saveRes);
 
-  // TODO: add tests for your routes
+    // Valid load
+    const req1 = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/load",
+      query: { name: "file1" },
+    });
+    const res1 = httpMocks.createResponse();
+    loadFile(req1, res1);
+    assert.strictEqual(res1._getStatusCode(), 200);
+    assert.deepStrictEqual(res1._getData(), { name: "file1", content: { key: "{\"name\":\"test\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } });
+
+    // Missing name
+    const req2 = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/load",
+    });
+    const res2 = httpMocks.createResponse();
+    loadFile(req2, res2);
+    assert.strictEqual(res2._getStatusCode(), 400);
+    assert.strictEqual(res2._getData(), 'Missing "name" parameter');
+
+    // File not found
+    const req3 = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/load",
+      query: { name: "nonexistent" },
+    });
+    const res3 = httpMocks.createResponse();
+    loadFile(req3, res3);
+    assert.strictEqual(res3._getStatusCode(), 404);
+    assert.deepStrictEqual(res3._getData(), { error: 'File "nonexistent" not found' });
+
+    resetSavesForTesting();
+  });
+
+  // At least two tests, Statement Coverage, Branch Coverage
+  it("listFiles", function () {
+    // No files saved
+    const req1 = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/list",
+    });
+    const res1 = httpMocks.createResponse();
+    listFiles(req1, res1);
+    assert.strictEqual(res1._getStatusCode(), 200);
+    assert.deepStrictEqual(res1._getData(), { files: [] });
+
+    // Save multiple files
+    const saveReq1 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file1", content: { key: "{\"name\":\"test\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } },
+    });
+    const saveReq2 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file2", content: { key: "{\"name\":\"test2\",\"content\":{\"kind\":\"split\",\"nw\":{\"kind\":\"solid\",\"color\":\"white\"},\"ne\":{\"kind\":\"solid\",\"color\":\"white\"},\"sw\":{\"kind\":\"solid\",\"color\":\"orange\"},\"se\":{\"kind\":\"solid\",\"color\":\"white\"}}}" } },
+    });
+    saveFile(saveReq1, httpMocks.createResponse());
+    saveFile(saveReq2, httpMocks.createResponse());
+
+    // List files
+    const req2 = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/list",
+    });
+    const res2 = httpMocks.createResponse();
+    listFiles(req2, res2);
+    assert.strictEqual(res2._getStatusCode(), 200);
+    assert.deepStrictEqual(res2._getData(), { files: ["file1", "file2"] });
+
+    resetSavesForTesting();
+  });
 });

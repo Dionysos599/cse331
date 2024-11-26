@@ -1,5 +1,5 @@
 import express, { Express } from "express";
-import { dummy } from './routes';
+import { saveFile, listFiles, loadFile } from './routes';
 import bodyParser from 'body-parser';
 
 
@@ -7,5 +7,8 @@ import bodyParser from 'body-parser';
 const port: number = 8088;
 const app: Express = express();
 app.use(bodyParser.json());
-app.get("/api/dummy", dummy);
+// app.get("/api/dummy", dummy);
+app.get("/api/list", listFiles);
+app.get("/api/load", loadFile);
+app.post("/api/save", saveFile);
 app.listen(port, () => console.log(`Server listening on ${port}`));
