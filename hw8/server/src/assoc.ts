@@ -109,3 +109,27 @@ export const get_value = <V> (x: string, L: AssocList<V>): V => {
     }
   }
 };
+
+
+/**
+ * Removes the pair with the given key from the list if it exists
+ * @param key key to remove from the list
+ * @param L list to remove key from
+ * @returns delete_key(key, L), where
+ *  delete_key: (S*, AssocList<V>) -> AssocList<V>
+ *      delete_key(k, nil)          := nil
+ *      delete_key(k, (x, y) :: R)  := R                    if k = x
+ *      delete_key(k, (x, y) :: R)  := (x, y) :: delete_key(k, R)  if k /= x
+ */
+export const delete_key = <V>(key: string, L: AssocList<V>): AssocList<V> => {
+  if (L.kind === "nil") {
+    return nil;
+  } else {
+    const [x]: [string, V] = L.hd;
+    if (key === x) {
+      return L.tl;
+    } else {
+      return cons(L.hd, delete_key(key, L.tl));
+    }
+  }
+};

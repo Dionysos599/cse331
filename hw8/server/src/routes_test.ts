@@ -1,6 +1,6 @@
 import * as assert from "assert";
 import * as httpMocks from "node-mocks-http";
-import { saveFile, loadFile, listFiles, resetSavesForTesting } from "./routes";
+import { saveFile, loadFile, listFiles, resetSavesForTesting, deleteFile } from "./routes";
 
 describe("routes", function () {
 
@@ -145,6 +145,82 @@ describe("routes", function () {
     listFiles(req2, res2);
     assert.strictEqual(res2._getStatusCode(), 200);
     assert.deepStrictEqual(res2._getData(), { files: ["file1", "file2"] });
+
+    resetSavesForTesting();
+  });
+
+  // Exhaustive Testing, Statement Coverage, Branch Coverage
+  it("deleteFile", function () {
+    // Save files for deletion testing
+    const saveReq = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/save",
+      body: { name: "file1", content: { key: "{\"name\":\"test\",\"content\":{\"kind\":\"solid\",\"color\":\"white\"}}" } },
+    });
+    saveFile(saveReq, httpMocks.createResponse());
+
+    // Test valid deletion
+    const req1 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/delete",
+      body: { name: "file1" }
+    });
+    const res1 = httpMocks.createResponse();
+    deleteFile(req1, res1);
+    assert.strictEqual(res1._getStatusCode(), 200);
+    assert.deepStrictEqual(res1._getData(), { message: 'File "file1" deleted' });
+
+    // Test missing body
+    const req2 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/delete"
+    });
+    const res2 = httpMocks.createResponse();
+    deleteFile(req2, res2);
+    assert.strictEqual(res2._getStatusCode(), 400);
+    assert.strictEqual(res2._getData(), 'Request body must contain name field');
+
+    // Test missing name in body
+    const req3 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/delete",
+      body: { other: "value" }
+    });
+    const res3 = httpMocks.createResponse();
+    deleteFile(req3, res3);
+    assert.strictEqual(res3._getStatusCode(), 400);
+    assert.strictEqual(res3._getData(), 'Request body must contain name field');
+
+    // Test invalid name type (number instead of string)
+    const req4 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/delete",
+      body: { name: 123 }
+    });
+    const res4 = httpMocks.createResponse();
+    deleteFile(req4, res4);
+    assert.strictEqual(res4._getStatusCode(), 400);
+    assert.strictEqual(res4._getData(), 'Name must be a string');
+
+    // Test file not found
+    const req5 = httpMocks.createRequest({
+      method: "POST",
+      url: "/api/delete",
+      body: { name: "nonexistent" }
+    });
+    const res5 = httpMocks.createResponse();
+    deleteFile(req5, res5);
+    assert.strictEqual(res5._getStatusCode(), 404);
+    assert.deepStrictEqual(res5._getData(), { error: 'File "nonexistent" not found' });
+
+    // Verify deletion by checking list is empty
+    const listReq = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/list"
+    });
+    const listRes = httpMocks.createResponse();
+    listFiles(listReq, listRes);
+    assert.deepStrictEqual(listRes._getData(), { files: [] });
 
     resetSavesForTesting();
   });

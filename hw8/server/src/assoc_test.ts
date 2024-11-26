@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { nil, cons } from './list';
-import { AssocList, contains_key, get_keys, get_value, set_value } from './assoc';
+import { AssocList, contains_key, get_keys, get_value, set_value, delete_key } from './assoc';
 
 // Note: the tests provided here may exceed the minimum number required by our
 // course guidelines
@@ -71,6 +71,50 @@ describe('assoc', function() {
 
     assert.strictEqual(get_value("c", L1), 3);
     assert.strictEqual(get_value("d", L2), 9);
+  });
+
+  it('delete_key', function() {
+    // Test deleting from empty list
+    assert.deepStrictEqual(delete_key("a", nil), nil);
+
+    // Test deleting from single-element list
+    const L1: AssocList<number> = cons(["a", 1], nil);
+    assert.deepStrictEqual(delete_key("a", L1), nil);
+    assert.deepStrictEqual(delete_key("b", L1), L1);  // Key not found
+
+    // Test deleting from multi-element list
+    const L2: AssocList<number> =
+        set_value("c", 3,
+            set_value("b", 2,
+                set_value("a", 1, nil)));
+
+    // Delete from beginning
+    const L3 = delete_key("a", L2);
+    assert.strictEqual(contains_key("a", L3), false);
+    assert.strictEqual(get_value("b", L3), 2);
+    assert.strictEqual(get_value("c", L3), 3);
+
+    // Delete from middle
+    const L4 = delete_key("b", L2);
+    assert.strictEqual(contains_key("b", L4), false);
+    assert.strictEqual(get_value("a", L4), 1);
+    assert.strictEqual(get_value("c", L4), 3);
+
+    // Delete from end
+    const L5 = delete_key("c", L2);
+    assert.strictEqual(contains_key("c", L5), false);
+    assert.strictEqual(get_value("a", L5), 1);
+    assert.strictEqual(get_value("b", L5), 2);
+
+    // Delete non-existent key
+    const L6 = delete_key("d", L2);
+    assert.deepStrictEqual(L6, L2);
+
+    // Test multiple operations
+    const L7 = delete_key("b", delete_key("a", L2));
+    assert.strictEqual(contains_key("a", L7), false);
+    assert.strictEqual(contains_key("b", L7), false);
+    assert.strictEqual(get_value("c", L7), 3);
   });
 
 });

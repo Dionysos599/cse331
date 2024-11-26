@@ -1,5 +1,5 @@
 import express, { Express } from "express";
-import { saveFile, listFiles, loadFile } from './routes';
+import { saveFile, listFiles, loadFile, deleteFile } from './routes';
 import bodyParser from 'body-parser';
 
 
@@ -11,4 +11,5 @@ app.use(bodyParser.json());
 app.get("/api/list", listFiles);
 app.get("/api/load", loadFile);
 app.post("/api/save", saveFile);
+app.post("/api/delete", deleteFile);
 app.listen(port, () => console.log(`Server listening on ${port}`));

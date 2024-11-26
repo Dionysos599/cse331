@@ -10,6 +10,9 @@ type FilePickerProps = {
 
   /** Callback for creating a new file */
   onCreate: (name: string) => void;
+
+  /** Callback for deleting a file */
+  onDelete: (name: string) => void;
 };
 
 
@@ -40,6 +43,8 @@ export class FilePicker extends Component<FilePickerProps, FilePickerState> {
         </label>
         <span style={{marginLeft: "10px"}}></span>
         <button onClick={this.doCreateClick}>Create</button>
+        <span style={{marginLeft: "10px"}}></span>
+        <button onClick={this.doDeleteClick}>Delete</button>
       </div>
     </div>);
   };
@@ -63,7 +68,6 @@ export class FilePicker extends Component<FilePickerProps, FilePickerState> {
     this.setState({name: evt.target.value});
   };
 
-  // Updates the UI to show the file editor
   doCreateClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
     const name = this.state.name;
 
@@ -75,5 +79,17 @@ export class FilePicker extends Component<FilePickerProps, FilePickerState> {
     this.props.onCreate(name.trim());
     this.setState({ name: "" });
   };
+
+  doDeleteClick = (_evt: MouseEvent<HTMLButtonElement>): void => {
+    const name = this.state.name;
+
+    if (name.trim() === "") {
+      alert("File name cannot be empty.");
+      return;
+    }
+
+    this.props.onDelete(name.trim());
+    this.setState({ name: "" });
+  }
 
 }

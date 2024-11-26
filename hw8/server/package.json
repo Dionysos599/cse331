@@ -1,6 +1,6 @@
 {
   "name": "cse331-hw-squares-server",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "CSE 331 Squares",
   "main": "dist/index.js",
   "scripts": {

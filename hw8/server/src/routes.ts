@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
-import { AssocList, set_value, get_value, get_keys, contains_key } from "./assoc";
+import { AssocList, set_value, get_value, get_keys, contains_key, delete_key } from "./assoc";
 import { nil, compact_list } from "./list";
 
 
@@ -14,6 +14,44 @@ let saved: AssocList<unknown> = nil;
 /** Empty the map of saves, for testing purposes */
 export const resetSavesForTesting = (): void => {
   saved = nil;
+};
+
+
+/**
+ * List all saved file names
+ * @param _req request to respond to
+ * @param res object to send response with
+ */
+export const listFiles = (_req: SafeRequest, res: SafeResponse): void => {
+  const keys = compact_list(get_keys(saved));
+  res.status(200).send({ files: keys });
+};
+
+
+/**
+ * Load file contents by name
+ * @param req request to respond to
+ * @param res object to send response with
+ */
+export const loadFile = (req: SafeRequest, res: SafeResponse): void => {
+  const name = first(req.query.name);
+
+  if (name === undefined) {
+    res.status(400).send('Missing "name" parameter');
+    return;
+  }
+
+  if (!contains_key(name, saved)) {
+    res.status(404).send({ error: `File "${name}" not found` });
+    return;
+  }
+
+  const content = get_value(name, saved);
+  const response = { name, content };
+
+  console.log('Sending response:', JSON.stringify(response));
+
+  res.status(200).send(response);
 };
 
 
@@ -47,40 +85,32 @@ export const saveFile = (req: SafeRequest, res: SafeResponse): void => {
 
 
 /**
- * Load file contents by name
- * @param req request to respond to
- * @param res object to send response with
+ * Delete a file by name
+ * @param req
+ * @param res
  */
-export const loadFile = (req: SafeRequest, res: SafeResponse): void => {
-  const name = first(req.query.name);
+export const deleteFile = (req: SafeRequest, res: SafeResponse): void => {
+    // Change from query parameter to body
+    if (!req.body || typeof req.body !== 'object' || !('name' in req.body)) {
+        res.status(400).send('Request body must contain name field');
+        return;
+    }
 
-  if (name === undefined) {
-    res.status(400).send('Missing "name" parameter');
-    return;
-  }
+    const name = req.body.name;
 
-  if (!contains_key(name, saved)) {
-    res.status(404).send({ error: `File "${name}" not found` });
-    return;
-  }
+    // Validate name is string
+    if (typeof name !== 'string') {
+        res.status(400).send('Name must be a string');
+        return;
+    }
 
-  const content = get_value(name, saved);
-  const response = { name, content };
+    if (!contains_key(name, saved)) {
+        res.status(404).send({ error: `File "${name}" not found` });
+        return;
+    }
 
-  console.log('Sending response:', JSON.stringify(response));
-
-  res.status(200).send(response);
-};
-
-
-/**
- * List all saved file names
- * @param _req request to respond to
- * @param res object to send response with
- */
-export const listFiles = (_req: SafeRequest, res: SafeResponse): void => {
-  const keys = compact_list(get_keys(saved));
-  res.status(200).send({ files: keys });
+    saved = delete_key(name, saved);
+    res.status(200).send({ message: `File "${name}" deleted` });
 };
 
 

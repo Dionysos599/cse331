@@ -50,6 +50,7 @@ export class App extends Component<{}, AppState> {
               files={this.state.show.names}
               onPick={this.doLoadFileClick}
               onCreate={this.doCreateClick}
+              onDelete={this.doDeleteClick}
           />
       );
 
@@ -70,13 +71,58 @@ export class App extends Component<{}, AppState> {
     }
   };
 
+
+  /** Handle navigating back to the FilePicker */
+  doMainMenuClick = (): void => {
+    this.setState({ show: { kind: "load-list" } });
+
+    fetch("/api/list")
+        .then(this.doListResp)
+        .catch(() => this.doListError("failed to connect to server"));
+  };
+
+  doListResp = (res: Response): void => {
+    if (res.status === 200) {
+      res.json().then(this.doListJson)
+          .catch(() => this.doListError("200 response is not valid JSON"));
+    } else {
+      res.text().then(this.doListError)
+          .catch(() => this.doListError("error response is not text"));
+    }
+  };
+
+  doListJson = (val: unknown): void => {
+    if (!isRecord(val)) {
+      throw new Error(`Data is not a record: ${typeof val}`);
+    }
+
+    if (val.files === undefined || !Array.isArray(val.files)) {
+      throw new Error(`Data has no files field: ${val}`);
+    }
+
+    this.setState({ show: { kind: "show-list", names: val.files }});
+  };
+
+  doListError = (msg: string): void => {
+    console.error(msg);
+  };
+
+
+  /** Handle creating a new file */
+  doCreateClick = (name: string): void => {
+    this.setState({
+      show: { kind: "edit-file", name: name, initialState: solid("white") }
+    });
+  };
+
+
   /** Handle when a file is clicked to load */
   doLoadFileClick = (name: string): void => {
     this.setState({ show: { kind: "load-file", name } });
 
     fetch(`/api/load?name=${name}`)
         .then(this.doLoadResp)
-        .catch(this.doLoadError);
+        .catch(() => this.doLoadError("failed to connect to server"));
   };
 
   doLoadResp = (res: Response): void => {
@@ -93,16 +139,8 @@ export class App extends Component<{}, AppState> {
     this.setState({ show: { kind: "edit-file", name: val.name, initialState: val.content } });
   };
 
-  doLoadError = (e: unknown): void => {
-    console.error("Failed to load file:", e);
-  };
-
-
-  /** Handle creating a new file */
-  doCreateClick = (name: string): void => {
-    this.setState({
-      show: { kind: "edit-file", name: name, initialState: solid("white") }
-    });
+  doLoadError = (msg: string): void => {
+    console.error(msg);
   };
 
 
@@ -116,47 +154,28 @@ export class App extends Component<{}, AppState> {
       headers: { "Content-Type": "application/json" },
     })
         .then(() => alert("File saved successfully"))
-        .catch(this.doAddError);
+        .catch(() => this.doSaveError("failed to connect to server"));
   };
 
-  doAddError = (msg: string): void => {
-    console.error(`Error fetching /api/add: ${msg}`);
+  doSaveError = (msg: string): void => {
+    console.error(msg);
     alert("Failed to save file");
   };
 
 
-  /** Handle navigating back to the FilePicker */
-  doMainMenuClick = (): void => {
-    this.setState({ show: { kind: "load-list" } });
-
-    fetch("/api/list")
-        .then(this.doListResp)
-        .catch(this.doListError);
+  /** Handle deleting a file */
+  doDeleteClick = (name: string): void => {
+    fetch("/api/delete", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+      headers: { "Content-Type": "application/json" },
+    })
+        .then(() => this.doMainMenuClick()) // Refresh
+        .catch(() => this.doDeleteError("failed to connect to server"));
   };
 
-  doListResp = (res: Response): void => {
-      if (res.status === 200) {
-      res.json().then(this.doListJson)
-          .catch(() => this.doListError("200 response is not valid JSON"));
-      } else {
-      res.text().then(this.doListError)
-          .catch(() => this.doListError("error response is not text"));
-      }
-  };
-
-  doListJson = (val: unknown): void => {
-      if (!isRecord(val)) {
-          throw new Error(`Data is not a record: ${typeof val}`);
-      }
-
-      if (val.files === undefined || !Array.isArray(val.files)) {
-          throw new Error(`Data has no files field: ${val}`);
-      }
-
-      this.setState({ show: { kind: "show-list", names: val.files } });
-  };
-
-  doListError = (msg: string): void => {
-      console.error(`Error fetching /api/list: ${msg}`);
+  doDeleteError = (msg: string): void => {
+      console.error(msg);
+      alert("Failed to delete file");
   };
 }
