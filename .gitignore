@@ -1,10 +1,7 @@
-*/node_modules/*
-!*/node_modules/coZ
-.idea
-*/.idea
-.DS_Store
-*/.DS_Store
-.vscode
-*/.vscode
-*/dist
-*/.nyc_output
+**/node_modules
+!**/node_modules/coZ
+**/.idea
+**/.DS_Store
+**/.vscode
+**/dist
+**/.nyc_output

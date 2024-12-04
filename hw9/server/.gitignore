@@ -1,5 +1,0 @@
-node_modules/*
-.vscode/*
-!.vscode/settings.json
-dist
-*/.nyc_output
