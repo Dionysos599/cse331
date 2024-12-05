@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import {
     Location, centroid, distance, isInRegion, locationsInRegion,
-    overlap, sameLocation, sortedLocations, squaredDistance
+    overlap, sameLocation, sortedLocations, squaredDistance, distanceMoreThan
   } from './locations';
 
 
@@ -135,7 +135,60 @@ describe('locations', function() {
   });
 
   it('distanceMoreThan', function() {
-    // TODO: implement this in Task 3
+    const R1 = { x1: 1, x2: 3, y1: 1, y2: 3 };
+
+    // Location inside the region
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 2 }, R1, -0.1), false);
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 2 }, R1, 1), false);
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 2 }, R1, 10), false);
+
+    // Location directly above the region
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 0 }, R1, 0.5), true);
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 0 }, R1, 2), false);
+
+    // Location directly below the region
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 4 }, R1, 0.5), true);
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 4 }, R1, 2), false);
+
+    // Location directly to the left of the region
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 2 }, R1, 0.5), true);
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 2 }, R1, 2), false);
+
+    // Location directly to the right of the region
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 2 }, R1, 0.5), true);
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 2 }, R1, 2), false);
+
+    // Location above-left of the region
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 0 }, R1, 1.414), true);
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 0 }, R1, Math.sqrt(2)), false);
+
+    // Location above-right of the region
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 0 }, R1, 1.414), true);
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 0 }, R1, Math.sqrt(2)), false);
+
+    // Location below-left of the region
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 4 }, R1, 1.414), true);
+    assert.strictEqual(distanceMoreThan({ x: 0, y: 4 }, R1, Math.sqrt(2)), false);
+
+    // Location below-right of the region
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 4 }, R1, 1.414), true);
+    assert.strictEqual(distanceMoreThan({ x: 4, y: 4 }, R1, Math.sqrt(2)), false);
+
+    // Location exactly on the boundary of the region
+    assert.strictEqual(distanceMoreThan({ x: 1, y: 2 }, R1, 0), false);
+    assert.strictEqual(distanceMoreThan({ x: 3, y: 1 }, R1, 0), false);
+    assert.strictEqual(distanceMoreThan({ x: 2, y: 3 }, R1, 0), false);
+    assert.strictEqual(distanceMoreThan({ x: 3, y: 3 }, R1, 0), false);
+
+    // Region with larger boundary values
+    const R2 = { x1: -10, x2: 10, y1: -10, y2: 10 };
+    assert.strictEqual(distanceMoreThan({ x: 20, y: 20 }, R2, 14.14), true);
+    assert.strictEqual(distanceMoreThan({ x: 20, y: 20 }, R2, Math.sqrt(200)), false);
+
+    // Infinite boundary values
+    const R3 = { x1: -Infinity, x2: Infinity, y1: -Infinity, y2: Infinity };
+    assert.strictEqual(distanceMoreThan({ x: 100, y: 100 }, R3, 0), false);
+    assert.strictEqual(distanceMoreThan({ x: 100, y: 100 }, R3, 1000), false);
   });
 
   it('locationsInRegion', function() {

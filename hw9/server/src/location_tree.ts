@@ -1,6 +1,6 @@
 import {
   Location, Region, centroid, isInRegion,
-  locationsInRegion, overlap
+  locationsInRegion, overlap, squaredDistance
 } from "./locations";
 
 
@@ -139,9 +139,120 @@ export const NO_INFO: ClosestInfo = {loc: undefined, dist: Infinity, calcs: 0};
 */
 export const closestInTree =
   (tree: LocationTree, loc: Location, bounds: Region, closest: ClosestInfo): ClosestInfo => {
-  // TODO: implement in Task 4
+      const dx = Math.max(0, Math.max(bounds.x1 - loc.x, loc.x - bounds.x2));
+      const dy = Math.max(0, Math.max(bounds.y1 - loc.y, loc.y - bounds.y2));
+      const distToBoundsSquared = dx * dx + dy * dy;
 
-  // Remove, just here to avoid "declared but never read" errors
-  console.log(tree, loc, bounds); 
-  return closest;
-}; 
+      if (distToBoundsSquared > closest.dist * closest.dist) {
+          return closest; // Skip this subtree if bounds are farther than the closest distance
+      }
+
+      // Step 2: Handle the base cases
+      if (tree.kind === "empty") {
+          return closest; // No points in this subtree
+      }
+
+      if (tree.kind === "single") {
+          const distSquared = squaredDistance(tree.loc, loc);
+          const dist = Math.sqrt(distSquared);
+          const newCalcs = closest.calcs + 1;
+
+          if (dist < closest.dist) {
+              return { loc: tree.loc, dist, calcs: newCalcs }; // Update closest point
+          }
+          return { loc: closest.loc, dist: closest.dist, calcs: newCalcs }; // Update calcs but keep closest
+      }
+
+      // Step 3: Handle split nodes
+      if (tree.kind === "split") {
+          const subregions = [
+              {
+                  region: { x1: bounds.x1, x2: tree.at.x, y1: bounds.y1, y2: tree.at.y },
+                  subtree: tree.nw,
+                  dist: squaredRegionDistance(
+                      loc,
+                      bounds.x1,
+                      tree.at.x,
+                      bounds.y1,
+                      tree.at.y
+                  ),
+              },
+              {
+                  region: { x1: tree.at.x, x2: bounds.x2, y1: bounds.y1, y2: tree.at.y },
+                  subtree: tree.ne,
+                  dist: squaredRegionDistance(
+                      loc,
+                      tree.at.x,
+                      bounds.x2,
+                      bounds.y1,
+                      tree.at.y
+                  ),
+              },
+              {
+                  region: { x1: bounds.x1, x2: tree.at.x, y1: tree.at.y, y2: bounds.y2 },
+                  subtree: tree.sw,
+                  dist: squaredRegionDistance(
+                      loc,
+                      bounds.x1,
+                      tree.at.x,
+                      tree.at.y,
+                      bounds.y2
+                  ),
+              },
+              {
+                  region: { x1: tree.at.x, x2: bounds.x2, y1: tree.at.y, y2: bounds.y2 },
+                  subtree: tree.se,
+                  dist: squaredRegionDistance(
+                      loc,
+                      tree.at.x,
+                      bounds.x2,
+                      tree.at.y,
+                      bounds.y2
+                  ),
+              },
+          ];
+
+          // Sort subregions by distance to `loc`
+          sortSubregions(subregions);
+
+          // Recursively search subregions
+          let updatedClosest = closest;
+          for (const subregion of subregions) {
+            updatedClosest = closestInTree(subregion.subtree, loc, subregion.region, updatedClosest);
+          }
+          return updatedClosest;
+      }
+
+      return closest;
+};
+
+const squaredRegionDistance = (
+    loc: Location,
+    x1: number,
+    x2: number,
+    y1: number,
+    y2: number
+): number => {
+    const dx = Math.max(0, Math.max(x1 - loc.x, loc.x - x2));
+    const dy = Math.max(0, Math.max(y1 - loc.y, loc.y - y2));
+    return dx * dx + dy * dy;
+}
+
+const sortSubregions = (subregions: { region: Region; subtree: LocationTree; dist: number }[]): void => {
+  for (const subregion1 of subregions) {
+    for (const subregion2 of subregions) {
+      if (subregion2.dist < subregion1.dist) {
+        const temp = { region: subregion1.region, subtree: subregion1.subtree, dist: subregion1.dist };
+        subregion1.region = subregion2.region;
+        subregion1.subtree = subregion2.subtree;
+        subregion1.dist = subregion2.dist;
+        subregion2.region = temp.region;
+        subregion2.subtree = temp.subtree;
+        subregion2.dist = temp.dist;
+      }
+    }
+  }
+}
+
+
+

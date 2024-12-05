@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import {
-    buildTree, findLocationsInRegion
+    buildTree, findLocationsInRegion, findClosestInTree
   } from './location_tree';
 
 
@@ -103,7 +103,7 @@ describe('location_tree', function() {
     // TODO: implement this in Task 4
   });
 
-/* TODO: uncomment these in Task 4
+// TODO: uncomment these in Task 4
   it('findClosestInTree', function() {
     assert.deepStrictEqual(findClosestInTree(
         buildTree([{x: 2, y: 1}]),
@@ -130,6 +130,5 @@ describe('location_tree', function() {
         [{x: 4, y: 1}, {x: -1, y: -1}, {x: 10, y: 10}]),
       [{x: 5, y: 1}, 1]);
   });
-*/
 
 });
