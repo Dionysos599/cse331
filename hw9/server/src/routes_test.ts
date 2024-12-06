@@ -339,21 +339,20 @@ describe("routes", function () {
     const result = res11._getData();
     assert.deepStrictEqual(res11._getStatusCode(), 200);
     assert.deepStrictEqual(result.found, true);
-    assert.ok(Array.isArray(result.path), "path should be an array");
-    assert.ok(result.path.length > 0, "path should not be empty");
+    assert.ok(Array.isArray(result.path), "path is not array");
+    assert.ok(result.path.length > 0, "path is empty");
 
     // Check nearby friends
-    assert.ok(Array.isArray(result.nearby), "nearby should be an array");
-    assert.strictEqual(result.nearby.length, 1, "should have one nearby friend");
+    assert.ok(Array.isArray(result.nearby), "nearby is not array");
+    assert.strictEqual(result.nearby.length, 1, "missing nearby friend");
 
     const fr = result.nearby[0];
     assert.strictEqual(fr.friend, "James");
     assert.ok(
         "x" in fr.loc && "y" in fr.loc,
-        "location should have x and y coordinates"
+        "missing x or y coordinate"
     );
 
-    // Handle additional cases after all GET requests are validated
     // Handle "path not found"
     const invalidSchedule = httpMocks.createRequest({
       method: "POST",
