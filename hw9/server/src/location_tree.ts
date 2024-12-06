@@ -1,6 +1,6 @@
 import {
   Location, Region, centroid, isInRegion,
-  locationsInRegion, overlap, squaredDistance
+  locationsInRegion, overlap, distance, distanceMoreThan
 } from "./locations";
 
 
@@ -139,91 +139,52 @@ export const NO_INFO: ClosestInfo = {loc: undefined, dist: Infinity, calcs: 0};
 */
 export const closestInTree =
   (tree: LocationTree, loc: Location, bounds: Region, closest: ClosestInfo): ClosestInfo => {
-      const dx = Math.max(0, Math.max(bounds.x1 - loc.x, loc.x - bounds.x2));
-      const dy = Math.max(0, Math.max(bounds.y1 - loc.y, loc.y - bounds.y2));
-      const distToBoundsSquared = dx * dx + dy * dy;
-
-      if (distToBoundsSquared > closest.dist * closest.dist) {
-          return closest; // Skip this subtree if bounds are farther than the closest distance
+      if (distanceMoreThan(loc, bounds, closest.dist)) {
+          return closest; // bounds further than closest
       }
 
-      // Step 2: Handle the base cases
       if (tree.kind === "empty") {
-          return closest; // No points in this subtree
+          return closest;
       }
 
       if (tree.kind === "single") {
-          const distSquared = squaredDistance(tree.loc, loc);
-          const dist = Math.sqrt(distSquared);
-          const newCalcs = closest.calcs + 1;
-
-          if (dist < closest.dist) {
-              return { loc: tree.loc, dist, calcs: newCalcs }; // Update closest point
+          if (distance(tree.loc, loc) < closest.dist) {
+              return { loc: tree.loc, dist: distance(tree.loc, loc), calcs: closest.calcs + 1 };
           }
-          return { loc: closest.loc, dist: closest.dist, calcs: newCalcs }; // Update calcs but keep closest
+          return { loc: closest.loc, dist: closest.dist, calcs: closest.calcs + 1 }; // keep closest
       }
 
-      // Step 3: Handle split nodes
-      if (tree.kind === "split") {
-          const subregions = [
-              {
-                  region: { x1: bounds.x1, x2: tree.at.x, y1: bounds.y1, y2: tree.at.y },
-                  subtree: tree.nw,
-                  dist: squaredRegionDistance(
-                      loc,
-                      bounds.x1,
-                      tree.at.x,
-                      bounds.y1,
-                      tree.at.y
-                  ),
-              },
-              {
-                  region: { x1: tree.at.x, x2: bounds.x2, y1: bounds.y1, y2: tree.at.y },
-                  subtree: tree.ne,
-                  dist: squaredRegionDistance(
-                      loc,
-                      tree.at.x,
-                      bounds.x2,
-                      bounds.y1,
-                      tree.at.y
-                  ),
-              },
-              {
-                  region: { x1: bounds.x1, x2: tree.at.x, y1: tree.at.y, y2: bounds.y2 },
-                  subtree: tree.sw,
-                  dist: squaredRegionDistance(
-                      loc,
-                      bounds.x1,
-                      tree.at.x,
-                      tree.at.y,
-                      bounds.y2
-                  ),
-              },
-              {
-                  region: { x1: tree.at.x, x2: bounds.x2, y1: tree.at.y, y2: bounds.y2 },
-                  subtree: tree.se,
-                  dist: squaredRegionDistance(
-                      loc,
-                      tree.at.x,
-                      bounds.x2,
-                      tree.at.y,
-                      bounds.y2
-                  ),
-              },
-          ];
+      // tree.kind === "split"
+      const subregions = [
+          {
+              region: { x1: bounds.x1, x2: tree.at.x, y1: bounds.y1, y2: tree.at.y },
+              subtree: tree.nw,
+              dist: squaredRegionDistance(loc, bounds.x1, tree.at.x, bounds.y1, tree.at.y)
+          },
+          {
+              region: { x1: tree.at.x, x2: bounds.x2, y1: bounds.y1, y2: tree.at.y },
+              subtree: tree.ne,
+              dist: squaredRegionDistance(loc, tree.at.x, bounds.x2, bounds.y1, tree.at.y)
+          },
+          {
+              region: { x1: bounds.x1, x2: tree.at.x, y1: tree.at.y, y2: bounds.y2 },
+              subtree: tree.sw,
+              dist: squaredRegionDistance(loc, bounds.x1, tree.at.x, tree.at.y, bounds.y2)
+          },
+          {
+              region: { x1: tree.at.x, x2: bounds.x2, y1: tree.at.y, y2: bounds.y2 },
+              subtree: tree.se,
+              dist: squaredRegionDistance(loc, tree.at.x, bounds.x2, tree.at.y, bounds.y2)
+          },
+      ];
 
-          // Sort subregions by distance to `loc`
-          sortSubregions(subregions);
+      sortSubregions(subregions);
 
-          // Recursively search subregions
-          let updatedClosest = closest;
-          for (const subregion of subregions) {
-            updatedClosest = closestInTree(subregion.subtree, loc, subregion.region, updatedClosest);
-          }
-          return updatedClosest;
+      let updatedClosest = closest;
+      for (const subregion of subregions) {
+        updatedClosest = closestInTree(subregion.subtree, loc, subregion.region, updatedClosest);
       }
-
-      return closest;
+      return updatedClosest;
 };
 
 const squaredRegionDistance = (

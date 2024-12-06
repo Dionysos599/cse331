@@ -106,10 +106,9 @@ export const overlap = (region1: Region, region2: Region): boolean => {
  * done without any calls to "distance" above (i.e., with no square roots).
  */
 export const distanceMoreThan = (loc: Location, region: Region, dist: number): boolean => {
-  // region = {1, 3, 1, 3}, loc = {2, 0}, dist = 1
   const distSq: number = dist * dist;
-  const closestX = Math.max(region.x1, Math.min(loc.x, region.x2)); // 2
-  const closestY = Math.max(region.y1, Math.min(loc.y, region.y2)); // 1
+  const closestX = Math.max(region.x1, Math.min(loc.x, region.x2));
+  const closestY = Math.max(region.y1, Math.min(loc.y, region.y2));
 
   const closestSq = (loc.x - closestX) * (loc.x - closestX) + (loc.y - closestY) * (loc.y - closestY);
   return closestSq > distSq;
