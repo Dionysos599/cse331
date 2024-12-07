@@ -3,6 +3,7 @@ import campusMap from './img/campus_map.jpg';
 import { Hour, indexAtHour, parseHour, parseSchedule, Schedule } from './schedule';
 import { Building, Edge, getBuildingByShortName, parseEdges } from './buildings';
 import { isRecord } from './record';
+import {Nearby, parseNearbyList} from "./nearby";
 
 
 // Radius of the circles drawn for each start/end and friends.
@@ -19,6 +20,7 @@ type MapState = {
   schedule?: Schedule;
   hour?: Hour;
   path?: Array<Edge>;
+  nearby?: Array<Nearby>;
 };
 
 
@@ -139,7 +141,16 @@ export class MapViewer extends Component<MapProps, MapState> {
             stroke={'white'} strokeWidth={10} key={'end'}/>
       ];
 
-    // TODO: add circles for each nearby friend in Task 6
+    if (this.state.nearby) {
+      let idx = 0;
+      for (const nearby of this.state.nearby) {
+        elems.push(
+            <circle cx={nearby.loc.x} cy={nearby.loc.y} fill={FRIEND_COLORS[idx % FRIEND_COLORS.length]}
+                    r={RADIUS} stroke={'white'} strokeWidth={10} key={`nearby-${idx}`}/>
+        );
+        idx++;
+      }
+    }
 
     return elems;
   };
@@ -167,7 +178,19 @@ export class MapViewer extends Component<MapProps, MapState> {
     items.push(makeLegendItem('red', `Start at ${start.shortName}`, 'start'));
     items.push(makeLegendItem('blue', `End at ${end.shortName}`, 'end'));
 
-    // TODO: add a legend item for each nearby friend in Task 6
+    if (this.state.nearby) {
+      let idx = 0;
+      for (const nearby of this.state.nearby) {
+        items.push(
+            makeLegendItem(
+                FRIEND_COLORS[idx % FRIEND_COLORS.length],
+                `Friend: ${nearby.friend} (dist: ${nearby.dist.toFixed(2)})`,
+                `nearby-${idx}`
+            )
+        );
+        idx++;
+      }
+    }
 
     return items;
   };
@@ -227,11 +250,12 @@ export class MapViewer extends Component<MapProps, MapState> {
       return;
     }
 
-    if (data.found)
-      // TODO: parse & record the nearby points in the state in Task 6
+    if (data.found) {
       this.setState({
         path: parseEdges(data.path),
+        nearby: data.nearby ? parseNearbyList(data.nearby) : []
       });
+    }
   }
 
   doShortestPathError = (msg: string): void => {
@@ -260,7 +284,6 @@ const makeLegendItem = (color: string, desc: string, key: string): JSX.Element =
 
 
 /** List of colors to use for nearby friends. */
-// TODO: uncomment this in Task 6
-//const FRIEND_COLORS: Array<string> = [
-//    "#F0BC68", "#C4D7D1", "#F5D1C3", "#FFB6A3", "#B8C6D9", "#8596A6",
-//  ];
+const FRIEND_COLORS: Array<string> = [
+   "#F0BC68", "#C4D7D1", "#F5D1C3", "#FFB6A3", "#B8C6D9", "#8596A6",
+ ];
