@@ -283,7 +283,6 @@ describe("routes", function () {
     assert.deepStrictEqual(res7._getData().path.length > 0, true);
     assert.deepStrictEqual(res7._getData().nearby, []);
 
-    // TODO: improve this test to include "nearby" results in Task 5
     // Add friends and schedule for Kevin
     const req8 = httpMocks.createRequest({
       method: "POST",
