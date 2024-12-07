@@ -142,13 +142,11 @@ export class MapViewer extends Component<MapProps, MapState> {
       ];
 
     if (this.state.nearby) {
-      let idx = 0;
-      for (const nearby of this.state.nearby) {
+      for (const [idx, nearby] of this.state.nearby.entries()) {
         elems.push(
             <circle cx={nearby.loc.x} cy={nearby.loc.y} fill={FRIEND_COLORS[idx % FRIEND_COLORS.length]}
                     r={RADIUS} stroke={'white'} strokeWidth={10} key={`nearby-${idx}`}/>
         );
-        idx++;
       }
     }
 
@@ -179,8 +177,7 @@ export class MapViewer extends Component<MapProps, MapState> {
     items.push(makeLegendItem('blue', `End at ${end.shortName}`, 'end'));
 
     if (this.state.nearby) {
-      let idx = 0;
-      for (const nearby of this.state.nearby) {
+      for (const [idx, nearby] of this.state.nearby.entries()) {
         items.push(
             makeLegendItem(
                 FRIEND_COLORS[idx % FRIEND_COLORS.length],
@@ -188,7 +185,6 @@ export class MapViewer extends Component<MapProps, MapState> {
                 `nearby-${idx}`
             )
         );
-        idx++;
       }
     }
 
